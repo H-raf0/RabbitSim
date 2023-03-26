@@ -1,3 +1,9 @@
+.vs/
+tp4.sln
+tp4.vcxproj
+tp4.vcxproj.filters
+tp4.vcxproj.user
+
 # Prerequisites
 *.d
 
