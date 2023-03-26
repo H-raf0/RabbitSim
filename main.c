@@ -7,18 +7,6 @@
 #define TIME_STEP 1 //in months
 
 
-
-typedef struct Rabbit {
-    char sexe;  // M: Male, F: Female
-    int status; //  0:desd ou 1:alive
-    int age;    // 0:just born, -1 dead? (age in months)
-    int mature; // 0:no, 1:yes(adult)
-    Srabbit* nextRabbit;
-
-}Srabbit;
-
-
-
 int fibonnaci(int N) {
 
     if (N == 0) {
@@ -32,6 +20,16 @@ int fibonnaci(int N) {
     }
 }
 
+typedef struct Rabbit {
+    char sexe;  // M: Male, F: Female
+    int status; //  0:desd ou 1:alive
+    int age;    // 0:just born, -1 dead? (age in months)
+    int mature; // 0:no, 1:yes(adult)
+    Srabbit* nextRabbit;
+
+}Srabbit;
+
+
 //used to update age every time step
 Srabbit* updateAge(Srabbit* nextRabbit) {
     nextRabbit->age += 1;
@@ -40,23 +38,19 @@ Srabbit* updateAge(Srabbit* nextRabbit) {
     return nextRabbit;
 }
 
+
 void sim(int N) {  //number of months
-    Srabbit* nextRabbit;
-    Srabbit* rabbit1 = malloc(sizeof(Srabbit*));
+    Srabbit* rabbit = malloc(sizeof(Srabbit*));
     int population = 2;
 
     //first 2 rubbits
-    *rabbit1 = (Srabbit){ 'M', 1, 0, 0, &(Srabbit) { 'F', 1, 0, 0, NULL } };
+    *rabbit = (Srabbit){ 'M', 1, 0, 0, &(Srabbit) { 'F', 1, 0, 0, NULL } };
 
     for (int i = 0; i < N; i += TIME_STEP) {
+        //run of all the existing rabbits
+        for (int j = 0; j < population; j++) {
 
-        //update first rabbit age
-        rabbit1->age += 1;
-        nextRabbit = rabbit1->nextRabbit;
-
-        for (int j = 0; j < population - 1; j++) {
-
-            nextRabbit = updateAge(nextRabbit);
+            rabbit = updateAge(rabbit);
         }
     }
 
