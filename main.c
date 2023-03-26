@@ -31,11 +31,9 @@ typedef struct Rabbit {
 
 
 //used to update age every time step
-Srabbit* updateAge(Srabbit* nextRabbit) {
-    nextRabbit->age += 1;
-    nextRabbit = nextRabbit->nextRabbit;
+void updateAge(Srabbit* nextRabbit) {
 
-    return nextRabbit;
+    nextRabbit->age += 1;
 }
 
 
@@ -50,7 +48,10 @@ void sim(int N) {  //number of months
         //run of all the existing rabbits
         for (int j = 0; j < population; j++) {
 
-            rabbit = updateAge(rabbit);
+            //code
+
+            updateAge(rabbit);
+            rabbit = rabbit->nextRabbit;
         }
     }
 
