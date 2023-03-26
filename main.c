@@ -25,17 +25,17 @@ typedef struct Rabbit {
     int status; //  0:dead ou 1:alive
     int age;    // 0:just born, -1 dead? (age in months)
     int mature; // 0:no, 1:yes(adult)
-    int srvRate; // survive rate <= 100%
+    unsigned int srvRate; // survive rate <= 100%
     Srabbit* nextRabbit;
 
 }Srabbit;
 
 
 //used to update age every time step
-void updateAge(Srabbit* rabbit) {
+void updateStats(Srabbit* rabbit) {
     int rabbitAge = rabbit->age;
 
-    rabbitAge += 1;
+    rabbitAge += TIME_STEP;
 
     //update maturaty
     if (rabbitAge >= 5 && rabbitAge<=8) {
@@ -47,14 +47,17 @@ void updateAge(Srabbit* rabbit) {
             rabbit->srvRate = 60;
         }
     }
-}
+    if (rabbit->status != 0) { //not dead
+        if ((rabbit->age / 12) >= 11) {  //is 11 years old or more
 
-void Agingdeath(Srabbit* rabbit) {
-
-    if (rabbit->srvRate == 0) {
+            rabbit->srvRate = (rabbit->srvRate >= 10) ? (rabbit->srvRate - 10) : 0;
+        }
+    }
+    else { //dead
         rabbit->status = 0;
     }
 }
+
 
 
 void sim(int N) {  //number of months
@@ -69,9 +72,9 @@ void sim(int N) {  //number of months
         for (int j = 0; j < population; j++) {
             if (rabbit->status != 0) {  // if not already dead
 
-                //code
 
-                updateAge(rabbit);
+                updateStats(rabbit);
+
                 rabbit = rabbit->nextRabbit;
             }
         }
