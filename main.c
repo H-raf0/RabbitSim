@@ -4,7 +4,7 @@
 
 #include "mt19937ar.h"
 
-#define TIME_STEP 1 //in months
+#define TIME_STEP 1 //1 month, modifing it may result in erorrs
 
 
 int fibonnaci(int N) {
@@ -35,10 +35,10 @@ typedef struct Rabbit {
 
 
 //used to update age every time step
-void updateStats(Srabbit* rabbit) {
+int updateStats(Srabbit* rabbit) {
     int rabbitAge = rabbit->age;
 
-    rabbitAge += TIME_STEP;
+    rabbit->age += TIME_STEP;
 
     //update maturaty
     if (rabbitAge >= 5 && rabbitAge<=8) {
@@ -50,35 +50,53 @@ void updateStats(Srabbit* rabbit) {
             rabbit->srvRate = 60;
         }
     }
-    if (rabbit->status != 0) { //not dead
+    else if (rabbit->age % 12 == 0) {
+
+        generateAvgLitters(rabbit);
+    }
+    if (rabbit->status != 0) { //not dead, probably this line is useless
         if ((rabbit->age / 12) >= 11) {  //is 11 years old or more
 
             rabbit->srvRate = (rabbit->srvRate >= 10) ? (rabbit->srvRate - 10) : 0;
+            
+            if (rabbit->srvRate == 0) rabbit->status = 0;
         }
     }
-    else { //dead
-        rabbit->status = 0;
-    }
+    return rabbit->status;
+}
+
+void generateAvgLitters(Srabbit* rabbit) {
+    float randNB = genrand_real1();
+    if (randNB <= 40) rabbit->nbLittersY = 6;                      //           6:60%              
+    else if (randNB <= 60) rabbit->nbLittersY = 5;                 //       5:20%   7:20%
+    else if (randNB <= 80) rabbit->nbLittersY = 7;                 //   4:10%           8:10%
+    else if (randNB <= 90) rabbit->nbLittersY = 4;
+    else if (randNB <= 100) rabbit->nbLittersY = 8;
 }
 
 int giveBirth(Srabbit*  rabbit) {
     int prctg = 25;
-    
-    if (rabbit->sex == 'F' && rabbit->mature == 1 && rabbit->pregnant == 0) {
-        if (rabbit->nbLitters < rabbit->nbLittersY) {
+
+    if (rabbit->sex == 'F' && rabbit->mature == 1) { //a mature not dead female rabbit
+
+        if (rabbit->nbLitters < rabbit->nbLittersY && rabbit->pregnant == 0) { // did less then her avg and not pregnant
 
             rabbit->nbLitters += 1;
-            float randNB = genrand_real1() * 100;
-            while (1){
-                if (randNB <= prctg) {
-                    return 2 + prctg / 25;
-                }
-                else {
-                    prctg += 25;
+            if (rabbit->pregnant == 1) { // if pregnant
+                float randNB = genrand_real1() * 100;
+                while (1) {
+                    // return nb of kittens [3,6]
+                    if (randNB <= prctg) {
+                        rabbit->pregnant = 0;
+                        return 2 + prctg / 25;
+                    }
+                    else {
+                        prctg += 25;
+                    }
                 }
             }
+            rabbit->pregnant = 1;
         }
-
     }
 }
 
@@ -125,13 +143,19 @@ void sim(int N) {  //number of months
     for (int i = 0; i < N; i += TIME_STEP) {
         //run of all the existing rabbits
         for (int j = 0; j < population; j++) {
-            if (rabbit->status != 0) {  // if not already dead
+            if (currentRabbit->status != 0) {  // if not already dead
 
-                updateStats(rabbit);
-                population += (newKittens = giveBirth(rabbit));
+                if (updateStats(currentRabbit)) continue;
+
+                
+
+                population += (newKittens = giveBirth(currentRabbit));
                 tempRabbit->nextRabbit = createRabbitsList(newKittens, tempRabbit);
 
-                if(j != population - 1) rabbit = rabbit->nextRabbit; //to avoid getting last pointer which is equal to NULL
+                if(j != population - 1) currentRabbit = currentRabbit->nextRabbit; //to avoid getting last pointer which is equal to NULL
+            }
+            else {
+                currentRabbit->status = 0;
             }
         }
 
