@@ -79,7 +79,7 @@ void updateStats(Srabbit* rabbit) {
     if (rabbit->status != 0) { //not dead, probably this line is useless
         if ((rabbit->age / 12) >= 11) {  //is 11 years old or more
 
-            rabbit->srvRate = (rabbit->srvRate >= 10) ? (rabbit->srvRate - 10) : 0;
+            rabbit->srvRate = (abs(rabbit->srvRate) >= 10) ? (abs(rabbit->srvRate) - 10) : 0;
             
             //if (rabbit->srvRate == 0) rabbit->status = 0;
         }
@@ -173,20 +173,22 @@ int sim(int N) {  //number of months
 
             printf("sex : %c, status : %d, age : %d, mature : %d, pregnant : %d, nbLittersY : %d, nbLitters : %d, srvRate : %d\n",
                 currentRabbit->sex, currentRabbit->status, currentRabbit->age, currentRabbit->mature, currentRabbit->pregnant,
-                currentRabbit->nbLittersY, currentRabbit->nbLitters, currentRabbit->srvRate);
+                currentRabbit->nbLittersY, currentRabbit->nbLitters, abs(currentRabbit->srvRate));
 
             if (currentRabbit->status != 0) {  // if not already dead
 
                 updateStats(currentRabbit);
 
-                if (currentRabbit->srvRate == 0) { currentRabbit->status = 0;  deadRabbits++; }
-                /*
-                if (genrand_real1() * 100 <= (100 - currentRabbit->srvRate)) {
-                    currentRabbit->status = 0;
-                    deadRabbits++;
-                    continue;
+                //if (currentRabbit->srvRate == 0) { currentRabbit->status = 0;  deadRabbits++; }
+
+                if (currentRabbit->srvRate >= 0) {
+                    if (genrand_real1() * 100 <= (100 - currentRabbit->srvRate)) {
+                        currentRabbit->status = 0;
+                        deadRabbits++;
+                        continue;
+                    }
+                    currentRabbit->srvRate = currentRabbit->srvRate * -1;
                 }
-                */
 
                 addedPopulation += (newKittens = giveBirth(currentRabbit));
                 printf("added :%d\n", newKittens);
