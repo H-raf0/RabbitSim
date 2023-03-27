@@ -126,6 +126,7 @@ void sim(int N) {  //number of months
     Srabbit* tempRabbit = malloc(sizeof(Srabbit));
     Srabbit* headListRabbit = malloc(sizeof(Srabbit));
     int population = 2;
+    int addedPopulation = 0;
     int newKittens;
 
     //first 2 rubbits
@@ -147,15 +148,14 @@ void sim(int N) {  //number of months
 
                 if (updateStats(currentRabbit)) continue;
 
-                
-
-                population += (newKittens = giveBirth(currentRabbit));
+                addedPopulation += (newKittens = giveBirth(currentRabbit));
                 tempRabbit = createRabbitsList(newKittens, tempRabbit);
 
                 if(j != population - 1) currentRabbit = currentRabbit->nextRabbit; //to avoid getting last pointer which is equal to NULL
             }
         }
         currentRabbit->nextRabbit = headListRabbit->nextRabbit; // linking the new generation to the old one
+        population += addedPopulation; // adding the new rabbits
     }
 
 }
