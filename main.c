@@ -106,7 +106,7 @@ char generate_sex() {
 
 Srabbit* createRabbitsList(int nb, Srabbit** head) {
     
-    Srabbit *rabbit = malloc(sizeof(Srabbit*));
+    Srabbit *rabbit = malloc(sizeof(Srabbit));
     Srabbit *nextRabbit = rabbit;
 
     *rabbit = (Srabbit){ generate_sex(), 1, 0, 0, 0, 0, 35, NULL};
@@ -121,10 +121,10 @@ Srabbit* createRabbitsList(int nb, Srabbit** head) {
 }
 
 void sim(int N) {  //number of months
-    Srabbit* rabbit = malloc(sizeof(Srabbit*));
-    Srabbit* currentRabbit = malloc(sizeof(Srabbit*));
-    Srabbit* tempRabbit = malloc(sizeof(Srabbit*));
-    Srabbit* headListRabbit = malloc(sizeof(Srabbit*));
+    Srabbit* rabbit = malloc(sizeof(Srabbit));
+    Srabbit* currentRabbit = malloc(sizeof(Srabbit));
+    Srabbit* tempRabbit = malloc(sizeof(Srabbit));
+    Srabbit* headListRabbit = malloc(sizeof(Srabbit));
     int population = 2;
     int newKittens;
 
@@ -133,14 +133,14 @@ void sim(int N) {  //number of months
     //to save the adress of 'rabbit' since it is the first rabbit ever created
     currentRabbit = rabbit;
 
-    //temporary rabbit used to connect new generations to the old ones
-    *tempRabbit = (Srabbit){ '?', 0, 0, 0, 0, 0, 0, NULL};
-    //head of the new generation linked list
-    headListRabbit = tempRabbit->nextRabbit;
-    
 
     //life cycle
     for (int i = 0; i < N; i += TIME_STEP) {
+
+        //temporary rabbit used to connect new generations to the old ones
+        *tempRabbit = (Srabbit){ '?', 0, 0, 0, 0, 0, 0, NULL };
+        //head of the new generation linked list
+        headListRabbit = tempRabbit;
         //run of all the existing rabbits
         for (int j = 0; j < population; j++) {
             if (currentRabbit->status != 0) {  // if not already dead
@@ -150,15 +150,12 @@ void sim(int N) {  //number of months
                 
 
                 population += (newKittens = giveBirth(currentRabbit));
-                tempRabbit->nextRabbit = createRabbitsList(newKittens, tempRabbit);
+                tempRabbit = createRabbitsList(newKittens, tempRabbit);
 
                 if(j != population - 1) currentRabbit = currentRabbit->nextRabbit; //to avoid getting last pointer which is equal to NULL
             }
-            else {
-                currentRabbit->status = 0;
-            }
         }
-
+        currentRabbit->nextRabbit = headListRabbit->nextRabbit; // linking the new generation to the old one
     }
 
 }
@@ -168,9 +165,8 @@ void sim(int N) {  //number of months
 int main()
 {
     int gen;
-    printf("Nombre de géneration ?\n");
-    scanf("%d", &gen);
-    printf(fibonacci(gen));
+    printf("Number of generations :");scanf("%d\n", &gen);
+    //printf(fibonacci(gen));
     return 0;
 }
 
