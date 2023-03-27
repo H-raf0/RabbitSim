@@ -2,4 +2,7 @@
 simulate rabbits production
 
 
-WHY NO BIRTH AT AGE 8
+# TO DO
+check if poiters are assigned correctly
+free all structurs made before quiting
+all become mature at age 5?

@@ -32,7 +32,7 @@ typedef struct Rabbit {
     char sex;            // M: Male, F: Female
     int status;           // 0:dead ou 1:alive
     int age;              // 0:just born, -1 dead? (age in months)
-    int mature;           // 0:no, 1:yes(adult)
+    int mature;           // x0:no, x1:yes(adult) x1: at age x become mature 
     int pregnant;         // 0:no, 1:yes
     int nbLittersY;       // kittens must have in a year
     int nbLitters;        // kittens made so far
@@ -51,7 +51,7 @@ void generateAvgLitters(Srabbit* rabbit) {
 }
 
 //used to update age every time step
-int updateStats(Srabbit* rabbit) {
+void updateStats(Srabbit* rabbit) {
 
     rabbit->age += TIME_STEP;
     int rabbitAge = rabbit->age;
@@ -61,7 +61,7 @@ int updateStats(Srabbit* rabbit) {
     if (rabbitAge >= 5 && rabbitAge<=8 && rabbit->mature == 0) {
 
         float randNB = genrand_real1() * 100;
-        while (!rabbit->mature) {
+        while (rabbit->mature == 0) {
             if (randNB <= prctg) {
 
                 rabbit->mature = 1 + 10 * rabbitAge;
@@ -74,6 +74,7 @@ int updateStats(Srabbit* rabbit) {
     }
     if (rabbit->mature > 0 && (rabbit->age % 12 == rabbit->mature / 10)) {
 
+        rabbit->nbLitters = 0;
         generateAvgLitters(rabbit);
     }
     if (rabbit->status != 0) { //not dead, probably this line is useless
@@ -81,10 +82,9 @@ int updateStats(Srabbit* rabbit) {
 
             rabbit->srvRate = (rabbit->srvRate >= 10) ? (rabbit->srvRate - 10) : 0;
             
-            if (rabbit->srvRate == 0) rabbit->status = 0;
+            //if (rabbit->srvRate == 0) rabbit->status = 0;
         }
     }
-    return rabbit->status;
 }
 
 int giveBirth(Srabbit*  rabbit) {
@@ -130,7 +130,7 @@ Srabbit* createRabbitsList(int nb, Srabbit** head) {
         saveFirst = rabbit;
         for (int i = 0; i < nb - 1; i++) {
 
-            Srabbit* newRabbit = (Srabbit*)malloc(sizeof(Srabbit));
+            Srabbit* newRabbit = (Srabbit*) malloc(sizeof(Srabbit));
             *newRabbit = (Srabbit){ generate_sex(), 1, 0, 0, 0, 0, 0, 35, NULL };
             rabbit->nextRabbit = newRabbit;
             rabbit = rabbit->nextRabbit;
@@ -144,13 +144,13 @@ Srabbit* createRabbitsList(int nb, Srabbit** head) {
 
 int sim(int N) {  //number of months
     Srabbit* rabbit = (Srabbit*) malloc(sizeof(Srabbit));
-    Srabbit* female = malloc(sizeof(Srabbit));
-    Srabbit* currentRabbit = malloc(sizeof(Srabbit));
-    Srabbit* tempRabbit = malloc(sizeof(Srabbit));
-    Srabbit* headListRabbit = malloc(sizeof(Srabbit));
+    Srabbit* female = (Srabbit*) malloc(sizeof(Srabbit));
+    Srabbit* currentRabbit = (Srabbit*) malloc(sizeof(Srabbit));
+    Srabbit* headListRabbit = (Srabbit*) malloc(sizeof(Srabbit));
     int population = 2;
     int addedPopulation = 0;
     int newKittens;
+    int deadRabbits = 0;
 
     //first 2 rubbits
     *female = (Srabbit){ 'F', 1, 0, 0, 0, 0, 0, 35, NULL };
@@ -164,24 +164,40 @@ int sim(int N) {  //number of months
         //to save the adress of 'rabbit' since it is the first rabbit ever created
         currentRabbit = rabbit;
         //temporary rabbit used to connect new generations to the old ones
+        Srabbit* tempRabbit = (Srabbit*)malloc(sizeof(Srabbit));
         *tempRabbit = (Srabbit){ '?', 0, 0, 0, 0, 0, 0, 0, NULL };
         //head of the new generation linked list
         headListRabbit = tempRabbit;
         //run of all the existing rabbits
+        printf("\ni : %d, pop : %d\n", i, population);
         for (int j = 0; j < population; j++) {
-            //printf("\ni : %d, j : %d\n", i, j);
+
+            printf("sex : %c, status : %d, age : %d, mature : %d, pregnant : %d, nbLittersY : %d, nbLitters : %d, srvRate : %d\n",
+                currentRabbit->sex, currentRabbit->status, currentRabbit->age, currentRabbit->mature, currentRabbit->pregnant,
+                currentRabbit->nbLittersY, currentRabbit->nbLitters, currentRabbit->srvRate);
 
             if (currentRabbit->status != 0) {  // if not already dead
 
-                if (!updateStats(currentRabbit)) continue;
-                
+                updateStats(currentRabbit);
+
+                if (currentRabbit->srvRate == 0) { currentRabbit->status = 0;  deadRabbits++; }
+                /*
+                if (genrand_real1() * 100 <= (100 - currentRabbit->srvRate)) {
+                    currentRabbit->status = 0;
+                    deadRabbits++;
+                    continue;
+                }
+                */
+
                 addedPopulation += (newKittens = giveBirth(currentRabbit));
-                printf("\nadded :%d?\n", newKittens);
-                
+                printf("added :%d\n", newKittens);
+
                 tempRabbit = createRabbitsList(newKittens, &tempRabbit);
-                
-                if (j != population - 1) { currentRabbit = currentRabbit->nextRabbit; } //to avoid getting last pointer which is equal to NULL
             }
+            
+            if (j != population - 1) { currentRabbit = currentRabbit->nextRabbit; } //to avoid getting last pointer which is equal to NULL
+
+            
         }
         if (headListRabbit->nextRabbit != NULL) {
             //printf("break point: %p\n%p", currentRabbit, headListRabbit);
@@ -190,6 +206,11 @@ int sim(int N) {  //number of months
         population += addedPopulation; // adding the new rabbits
         addedPopulation = 0;
     }
+
+    population -= deadRabbits;
+    printf("population : %d\n"
+           "dead rabbits : % d",
+            population, deadRabbits);
     return population;
 }
 
@@ -197,10 +218,10 @@ int sim(int N) {  //number of months
 
 int main()
 {
-    int gen;
-    printf("Number of generations :");scanf("%d", &gen);
+    //int gen;
+    //printf("Number of generations :");scanf("%d", &gen);
     //printf(fibonacci(gen));
-    printf("population is %d", sim(gen));
+    sim(25);
     return 0;
 }
 
