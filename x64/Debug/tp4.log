@@ -1,6 +1,0 @@
-﻿  main.c
-C:\Users\achra\OneDrive\Bureau\tp4\main.c(45,20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\achra\OneDrive\Bureau\tp4\main.c(63,40): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\achra\OneDrive\Bureau\tp4\main.c(99,48): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\achra\OneDrive\Bureau\tp4\main.c(138,37): warning C4047: '=': 'Rabbit *' differs in levels of indirection from 'Srabbit **'
-  tp4.vcxproj -> C:\Users\achra\OneDrive\Bureau\tp4\x64\Debug\tp4.exe
