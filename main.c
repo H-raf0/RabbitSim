@@ -63,8 +63,7 @@ void updateStats(Srabbit* rabbit) {
         float randNB = genrand_real1() * 100;
         while (rabbit->mature == 0) {
             if (randNB <= prctg) {
-
-                rabbit->mature = 1 + 10 * rabbitAge;
+                rabbit->mature = 1 + 10 * (rabbitAge - 1 + prctg/25);
                 rabbit->srvRate = 60;
             }
             else{
