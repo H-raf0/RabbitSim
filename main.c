@@ -36,7 +36,7 @@ typedef struct Rabbit {
     int pregnant;         // 0:no, 1:yes
     int nbLittersY;       // kittens must have in a year
     int nbLitters;        // kittens made so far
-    int srvRate; // survive rate <= 100%
+    int srvRate; // survive rate <= 100%, <0 means has been used, >=0 will be used (is positif when created ot updated)
     struct Rabbit* nextRabbit;  // next rabbit
 
 }Srabbit;
