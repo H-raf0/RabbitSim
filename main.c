@@ -141,22 +141,20 @@ Srabbit* createRabbitsList(int nb, Srabbit** head) {
     return *head;
 }
 
-int sim(int N) {  //number of months
+int sim(int startNB, int N) {  //number of months
     Srabbit* rabbit = (Srabbit*) malloc(sizeof(Srabbit));
-    Srabbit* female = (Srabbit*) malloc(sizeof(Srabbit));
     Srabbit* currentRabbit = (Srabbit*) malloc(sizeof(Srabbit));
     Srabbit* headListRabbit = (Srabbit*) malloc(sizeof(Srabbit));
-    int population = 2;
+    int population = startNB;
     int addedPopulation = 0;
     int newKittens;
     int deadRabbits = 0;
+    float progress;
 
     //first 2 rubbits
-    *female = (Srabbit){ 'F', 1, 0, 0, 0, 0, 0, 35, NULL };
-    *rabbit = (Srabbit){ 'M', 1, 0, 0, 0, 0, 0, 35, female };
+    *rabbit = (Srabbit){ generate_sex(), 1, 0, 0, 0, 0, 0, 35, NULL};
+    createRabbitsList(startNB-1, &rabbit);
     
-
-
     //life cycle
     for (int i = 0; i < N; i += TIME_STEP) {
 
@@ -168,12 +166,23 @@ int sim(int N) {  //number of months
         //head of the new generation linked list
         headListRabbit = tempRabbit;
         //run of all the existing rabbits
-        printf("\ni : %d, pop : %d\n", i, population);
-        for (int j = 0; j < population; j++) {
 
-            printf("sex : %c, status : %d, age : %d, mature : %d, pregnant : %d, nbLittersY : %d, nbLitters : %d, srvRate : %d\n",
-                currentRabbit->sex, currentRabbit->status, currentRabbit->age, currentRabbit->mature, currentRabbit->pregnant,
+        progress = 0;
+        printf("month %d / %d :\n", i, N);
+        for (int j = 0; j < population; j++) {
+            
+            if (j % 10000 == 0 && j != 0) {
+
+                // transforme i to a percentage and prints it
+                progress = j * 100.0 / population;
+                printf("progress : %.2f %%\r", progress);
+            }
+
+            /*
+            printf("population : %d\nsex : %c, status : %d, age : %d, mature : %d, pregnant : %d, nbLittersY : %d, nbLitters : %d, srvRate : %d\n",
+                population, currentRabbit->sex, currentRabbit->status, currentRabbit->age, currentRabbit->mature, currentRabbit->pregnant,
                 currentRabbit->nbLittersY, currentRabbit->nbLitters, abs(currentRabbit->srvRate));
+            */
 
             if (currentRabbit->status != 0) {  // if not already dead
 
@@ -185,13 +194,13 @@ int sim(int N) {  //number of months
                     if (genrand_real1() * 100 <= (100 - currentRabbit->srvRate)) {
                         currentRabbit->status = 0;
                         deadRabbits++;
+                        population--;
                         continue;
                     }
                     currentRabbit->srvRate = currentRabbit->srvRate * -1;
                 }
 
                 addedPopulation += (newKittens = giveBirth(currentRabbit));
-                printf("added :%d\n", newKittens);
 
                 tempRabbit = createRabbitsList(newKittens, &tempRabbit);
             }
@@ -200,6 +209,8 @@ int sim(int N) {  //number of months
 
             
         }
+        printf("    progress finished\n");
+        system("cls");
         if (headListRabbit->nextRabbit != NULL) {
             //printf("break point: %p\n%p", currentRabbit, headListRabbit);
             currentRabbit->nextRabbit = headListRabbit->nextRabbit; // linking the new generation to the old one
@@ -222,7 +233,7 @@ int main()
     //int gen;
     //printf("Number of generations :");scanf("%d", &gen);
     //printf(fibonacci(gen));
-    sim(25);
+    sim(100, 240);
     return 0;
 }
 
