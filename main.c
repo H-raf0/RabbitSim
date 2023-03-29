@@ -186,7 +186,8 @@ int sim(int startNB, int N) {  //number of months
 
 
         for (int j = 0; j < population; j++) {
-            printf("%d", j);
+
+
             if (j % 10000 == 0 && j != 0) {
 
                 // transforme i to a percentage and prints it
@@ -201,7 +202,7 @@ int sim(int startNB, int N) {  //number of months
             */
             
             if (currentRabbit->status != 0) {  // if not already dead
-                printf("\n pop :%d j : %d dead : %d", population, j, deadRabbits);
+                //printf("\n pop :%d j : %d dead : %d", population, j, deadRabbits);
                 updateStats(currentRabbit);
 
                 //if (currentRabbit->srvRate == 0) { currentRabbit->status = 0;  deadRabbits++; }
@@ -211,6 +212,9 @@ int sim(int startNB, int N) {  //number of months
                         currentRabbit->status = 0;
                         deadRabbits++;
                         //population--;
+                        if (j != (population - 1)) { //to avoid getting last pointer which is equal to NULL
+                            currentRabbit = currentRabbit->nextRabbit;
+                        }
                         continue;
                     }
                     currentRabbit->srvRate = currentRabbit->srvRate * -1;
@@ -220,8 +224,10 @@ int sim(int startNB, int N) {  //number of months
 
                 tempRabbit = createRabbitsList(newKittens, &tempRabbit);
             }
-            
-            if (j != population - 1) { //to avoid getting last pointer which is equal to NULL
+
+            printf("\n j = %d, population = %d, (j != population - 1) = %d\n", j, population, j != (population - 1));
+            if (j != (population - 1)) { //to avoid getting last pointer which is equal to NULL
+                //printf("%d", j);
                 currentRabbit = currentRabbit->nextRabbit;
             } 
 
