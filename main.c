@@ -225,7 +225,7 @@ int sim(int startNB, int N) {  //number of months
                 tempRabbit = createRabbitsList(newKittens, &tempRabbit);
             }
 
-            printf("\n j = %d, population = %d, (j != population - 1) = %d\n", j, population, j != (population - 1));
+            
             if (j != (population - 1)) { //to avoid getting last pointer which is equal to NULL
                 //printf("%d", j);
                 currentRabbit = currentRabbit->nextRabbit;
@@ -241,12 +241,12 @@ int sim(int startNB, int N) {  //number of months
             population += addedPopulation; // adding the new rabbits
             addedPopulation = 0;
         }
-        printf("\n there is : %d", print_pointers(rabbit, fp));
+        //printf("\n there is : %d", print_pointers(rabbit, fp));
     }
 
     population -= deadRabbits;
-    printf("population : %d\n"
-        "dead rabbits : % d",
+    printf("\nresults:\npopulation : %d\n"
+        "dead rabbits : % d\n",
         population, deadRabbits);
     /*
 
@@ -265,7 +265,7 @@ int print_pointers(Srabbit* rabbit) {
     int n = 0;
     Srabbit* currentRabbit = rabbit;
 
-    fp = fopen("output.txt", "w");
+    fp = fopen("pointers.txt", "w");
     if (flogs == NULL) {
         fprintf(flogs, "Failed to open the file `output.txt`\n");
         return 1;
@@ -288,7 +288,8 @@ int main()
     //int gen;
     //printf("Number of generations :");scanf("%d", &gen);
     //printf(fibonacci(gen));
-    sim(10, 13);
+    sim(10, 130);
+    //fibonnaci(5);
     return 0;
 }
 

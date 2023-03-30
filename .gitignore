@@ -1,4 +1,6 @@
 .vs/
+LOGS.txt
+output.txt
 tp4.sln
 tp4.vcxproj
 tp4.vcxproj.filters
