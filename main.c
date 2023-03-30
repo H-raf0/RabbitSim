@@ -9,13 +9,11 @@
 #define TIME_STEP 1 //1 month, modifing it may result in errors
 
 FILE* flogs;
+
 int fibonnaci(int N) {
 
-    if (N == 0) {
+    if (N == 0 || N == 1) {
         return 2;
-    }
-    else if (N == 1) {
-        return 4;
     }
     else {
         return fibonnaci(N - 1) + fibonnaci(N - 2);
@@ -35,6 +33,17 @@ typedef struct Rabbit {
 
 }Srabbit;
 
+void freeMem(Srabbit** rabbit) {
+    Srabbit* currentRabbit = *rabbit;
+    Srabbit* saveP;
+
+    while (currentRabbit != NULL) {
+        saveP = currentRabbit;
+        currentRabbit = currentRabbit->nextRabbit;
+        free(saveP);
+    }
+}
+
 void generateAvgLitters(Srabbit* rabbit) {
     float randNB = genrand_real1();
     if (randNB <= 40) rabbit->nbLittersY = 6;                      //           6:60%              
@@ -52,15 +61,15 @@ void updateStats(Srabbit* rabbit) {
     int prctg = 25;
 
     //update maturaty
-    if (rabbitAge >= 5 && rabbitAge<=8 && rabbit->mature == 0) {
+    if (rabbitAge >= 5 && rabbitAge <= 8 && rabbit->mature == 0) {
 
         float randNB = genrand_real1() * 100;
         while (rabbit->mature == 0) {
             if (randNB <= prctg) {
-                rabbit->mature = 1 + 10 * (rabbitAge - 1 + prctg/25);
+                rabbit->mature = 1 + 10 * (rabbitAge - 1 + prctg / 25);
                 rabbit->srvRate = 60;
             }
-            else{
+            else {
                 prctg += 25;
             }
         }
@@ -74,20 +83,20 @@ void updateStats(Srabbit* rabbit) {
         if ((rabbit->age / 12) >= 11) {  //is 11 years old or more
 
             rabbit->srvRate = (abs(rabbit->srvRate) >= 10) ? (abs(rabbit->srvRate) - 10) : 0;
-            
+
             //if (rabbit->srvRate == 0) rabbit->status = 0;
         }
     }
 }
 
-int giveBirth(Srabbit*  cRabbit) {
+int giveBirth(Srabbit* cRabbit) {
     int prctg = 25;
 
-    if (cRabbit->sex == 'F' && cRabbit->mature%10 == 1) { //a mature not dead female rabbit
+    if (cRabbit->sex == 'F' && cRabbit->mature % 10 == 1) { //a mature not dead female rabbit
 
         if (cRabbit->nbLitters < cRabbit->nbLittersY) { // did less then her avg and not pregnant
 
-            
+
             if (cRabbit->pregnant == 1) { // if pregnant
                 float randNB = genrand_real1() * 100;
                 while (1) {
@@ -139,12 +148,10 @@ Srabbit* createRabbitsList(int nb, Srabbit** head) {
 
 int sim(int startNB, int N) {  //number of months
     Srabbit* rabbit = (Srabbit*)malloc(sizeof(Srabbit));
+    Srabbit* currentRabbit;
+    Srabbit* headListRabbit;
+    FILE* fp;
 
-    Srabbit* currentRabbit = (Srabbit*) malloc(sizeof(Srabbit));
-
-    Srabbit* headListRabbit = (Srabbit*)malloc(sizeof(Srabbit));
-    FILE *fp;
-    
     int population = startNB;
     int addedPopulation = 0;
     int newKittens;
@@ -165,9 +172,9 @@ int sim(int startNB, int N) {  //number of months
 
 
     //first 2 rubbits
-    *rabbit = (Srabbit){ generate_sex(), 1, 0, 0, 0, 0, 0, 35, NULL};
-    createRabbitsList(startNB-1, &rabbit);
-    
+    *rabbit = (Srabbit){ generate_sex(), 1, 0, 0, 0, 0, 0, 35, NULL };
+    createRabbitsList(startNB - 1, &rabbit);
+
     //life cycle
     for (int i = 0; i < N; i += TIME_STEP) {
 
@@ -182,7 +189,7 @@ int sim(int startNB, int N) {  //number of months
         //run of all the existing rabbits
 
         progress = 0;
-        printf("\nmonth %d / %d :\n", i + 1, N);
+        printf("month %d / %d :\n", i + 1, N);
 
 
         for (int j = 0; j < population; j++) {
@@ -195,14 +202,7 @@ int sim(int startNB, int N) {  //number of months
                 printf("progress : %.2f %%\r", progress);
             }
 
-            /*
-            printf("population : %d\nsex : %c\nstatus : %d\nage : %d\nmature : %d\npregnant : %d\nnbLittersY : %d\nnbLitters : %d\nsrvRate\n%dnextRabbit : %p\n",
-                population, currentRabbit->sex, currentRabbit->status, currentRabbit->age, currentRabbit->mature, currentRabbit->pregnant,
-                currentRabbit->nbLittersY, currentRabbit->nbLitters, abs(currentRabbit->srvRate), currentRabbit->nextRabbit);
-            */
-            
             if (currentRabbit->status != 0) {  // if not already dead
-                //printf("\n pop :%d j : %d dead : %d", population, j, deadRabbits);
                 updateStats(currentRabbit);
 
                 //if (currentRabbit->srvRate == 0) { currentRabbit->status = 0;  deadRabbits++; }
@@ -225,40 +225,36 @@ int sim(int startNB, int N) {  //number of months
                 tempRabbit = createRabbitsList(newKittens, &tempRabbit);
             }
 
-            
-            if (j != (population - 1)) { //to avoid getting last pointer which is equal to NULL
-                //printf("%d", j);
-                currentRabbit = currentRabbit->nextRabbit;
-            } 
 
-            
+            if (j != (population - 1)) { //to avoid getting last pointer which is equal to NULL
+                currentRabbit = currentRabbit->nextRabbit;
+            }
+
+
         }
-        printf("    progress finished\n");
+        printf("progress finished  \n");
         system("cls");
         if (headListRabbit->nextRabbit != NULL) {
-            //printf("break point: %p\n%p", currentRabbit, headListRabbit);
             currentRabbit->nextRabbit = headListRabbit->nextRabbit; // linking the new generation to the old one
             population += addedPopulation; // adding the new rabbits
             addedPopulation = 0;
         }
-        //printf("\n there is : %d", print_pointers(rabbit, fp));
     }
 
     population -= deadRabbits;
     printf("\nresults:\npopulation : %d\n"
         "dead rabbits : % d\n",
         population, deadRabbits);
-    /*
-
+    
     fprintf(fp, "population : %d\n"
         "dead rabbits : % d\n",
         population, deadRabbits);
-    */
+    
     fclose(fp);
     fclose(flogs);
+    freeMem(&rabbit);
     return population;
 }
-
 
 int print_pointers(Srabbit* rabbit) {
     FILE* fp;
@@ -288,9 +284,7 @@ int main()
     //int gen;
     //printf("Number of generations :");scanf("%d", &gen);
     //printf(fibonacci(gen));
-    sim(10, 130);
+    sim(10, 120);
     //fibonnaci(5);
     return 0;
 }
-
-
