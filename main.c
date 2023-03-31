@@ -8,8 +8,6 @@
 
 #define TIME_STEP 1 //1 month, modifing it may result in errors
 
-FILE* flogs;
-
 int fibonnaci(int N) {
 
     if (N == 0 || N == 1) {
@@ -74,7 +72,7 @@ void updateStats(Srabbit* rabbit) {
             }
         }
     }
-    if (rabbit->mature > 0 && (rabbit->age % 12 == rabbit->mature / 10)) {
+    if (rabbit->sex == 'F' && rabbit->mature > 0 && (rabbit->age % 12 == rabbit->mature / 10)) {
 
         rabbit->nbLitters = 0;
         generateAvgLitters(rabbit);
@@ -83,16 +81,13 @@ void updateStats(Srabbit* rabbit) {
         if ((rabbit->age / 12) >= 11) {  //is 11 years old or more
 
             rabbit->srvRate = (abs(rabbit->srvRate) >= 10) ? (abs(rabbit->srvRate) - 10) : 0;
-
-            //if (rabbit->srvRate == 0) rabbit->status = 0;
         }
     }
 }
 
 int giveBirth(Srabbit* cRabbit) {
-    int prctg = 25;
-
     if (cRabbit->sex == 'F' && cRabbit->mature % 10 == 1) { //a mature not dead female rabbit
+        int prctg = 25;
 
         if (cRabbit->nbLitters < cRabbit->nbLittersY) { // did less then her avg and not pregnant
 
@@ -158,15 +153,10 @@ int sim(int startNB, int N) {  //number of months
     int deadRabbits = 0;
     float progress;
 
-    flogs = fopen("LOGS.txt", "a");
-    if (flogs == NULL) {
-        fprintf(flogs, "Failed to open the file `LOGS.txt`\n");
-        return 1;
-    }
 
     fp = fopen("output.txt", "w");
-    if (flogs == NULL) {
-        fprintf(flogs, "Failed to open the file `output.txt`\n");
+    if (fp == NULL) {
+        printf("Failed to open the file `output.txt`\n");
         return 1;
     }
 
@@ -205,13 +195,10 @@ int sim(int startNB, int N) {  //number of months
             if (currentRabbit->status != 0) {  // if not already dead
                 updateStats(currentRabbit);
 
-                //if (currentRabbit->srvRate == 0) { currentRabbit->status = 0;  deadRabbits++; }
-
                 if (currentRabbit->srvRate >= 0) {
                     if (genrand_real1() * 100 <= (100 - currentRabbit->srvRate)) {
                         currentRabbit->status = 0;
                         deadRabbits++;
-                        //population--;
                         if (j != (population - 1)) { //to avoid getting last pointer which is equal to NULL
                             currentRabbit = currentRabbit->nextRabbit;
                         }
@@ -233,58 +220,37 @@ int sim(int startNB, int N) {  //number of months
 
         }
         printf("progress finished  \n");
-        system("cls");
+        system("cls"); //system("clear");
+
         if (headListRabbit->nextRabbit != NULL) {
             currentRabbit->nextRabbit = headListRabbit->nextRabbit; // linking the new generation to the old one
             population += addedPopulation; // adding the new rabbits
             addedPopulation = 0;
         }
+        free(headListRabbit);
     }
 
     population -= deadRabbits;
-    printf("\nresults:\npopulation : %d\n"
-        "dead rabbits : % d\n",
-        population, deadRabbits);
+    printf("\ninput:\n   start number: %d\n   months : %d\nresults:\n   alive population : %d\n"
+        "   dead rabbits : % d\n",
+        startNB, N, population, deadRabbits);
     
-    fprintf(fp, "population : %d\n"
+    fprintf(fp, "alive population : %d\n"
         "dead rabbits : % d\n",
         population, deadRabbits);
     
     fclose(fp);
-    fclose(flogs);
     freeMem(&rabbit);
     return population;
 }
 
-int print_pointers(Srabbit* rabbit) {
-    FILE* fp;
-    int n = 0;
-    Srabbit* currentRabbit = rabbit;
-
-    fp = fopen("pointers.txt", "w");
-    if (flogs == NULL) {
-        fprintf(flogs, "Failed to open the file `output.txt`\n");
-        return 1;
-    }
-
-    while (currentRabbit != NULL) {
-        fprintf(fp, "\nID : %d\nsex : %c\nstatus : %d\nage : %d\nmature : %d\npregnant : %d\nnbLittersY : %d\nnbLitters : %d\nsrvRate : %d\nnextRabbit : %p\n",
-            n, currentRabbit->sex, currentRabbit->status, currentRabbit->age, currentRabbit->mature, currentRabbit->pregnant,
-            currentRabbit->nbLittersY, currentRabbit->nbLitters, abs(currentRabbit->srvRate), currentRabbit->nextRabbit);
-        n++;
-        currentRabbit = currentRabbit->nextRabbit;
-    }
-    fprintf(fp, "\nEND\n");
-    fclose(fp);
-    return n;
-}
 
 int main()
 {
     //int gen;
     //printf("Number of generations :");scanf("%d", &gen);
     //printf(fibonacci(gen));
-    sim(10, 120);
+    sim(100, 100);
     //fibonnaci(5);
     return 0;
 }
