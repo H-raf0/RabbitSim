@@ -8,6 +8,17 @@
 
 #define TIME_STEP 1 //1 month, modifing it may result in errors
 
+
+/*
+|------------------------------------------------------------------------------|
+|fibonnaci                                                                     |
+|use : simulate the production of rabbits using fibonnaci methode.             |
+|                                                                              |
+|input : N, number of months to simulate.                                      |
+|                                                                              |
+|output : the number of rabbits after N months.                                |
+|------------------------------------------------------------------------------|
+*/
 int fibonnaci(int N) {
 
     if (N == 0 || N == 1) {
@@ -18,30 +29,53 @@ int fibonnaci(int N) {
     }
 }
 
+
+/*
+|------------------------------------------------------------------------------|
+|Srabbit                                                                       |
+|use : a structure that represent one rabbit.                                  |
+|------------------------------------------------------------------------------|
+*/
 typedef struct Rabbit {
     char sex;            // M: Male, F: Female
     int status;           // 0:dead ou 1:alive
-    int age;              // 0:just born, -1 dead? (age in months)
-    int mature;           // x0:no, x1:yes(adult) x1: at age x become mature 
+    int age;              // 0:just born, >0 age in months
+    int mature;           // 0:no, x1:yes(adult) x is the age it become adult
     int pregnant;         // 0:no, 1:yes
-    int nbLittersY;       // kittens must have in a year
-    int nbLitters;        // kittens made so far
-    int srvRate; // survive rate <= 100%, <0 means has been used, >=0 will be used (is positif when created ot updated)
+    int nbLittersY;       // number of litters a female rabbit must have in a year
+    int nbLitters;        // number of litters made in a year
+    int srvRate; // survive rate <= 100%, <0 means has been used, >=0 will be used (is positif when created or updated)
     struct Rabbit* nextRabbit;  // next rabbit
 
 }Srabbit;
 
+/*
+|------------------------------------------------------------------------------|
+|freeMem                                                                       |
+|use : free the memory allocated by all the rabbits used in the linked list.   |
+|                                                                              |
+|input : rabbit, the head of the linked list.                                  |
+|------------------------------------------------------------------------------|
+*/
 void freeMem(Srabbit** rabbit) {
     Srabbit* currentRabbit = *rabbit;
     Srabbit* saveP;
 
     while (currentRabbit != NULL) {
-        saveP = currentRabbit;
-        currentRabbit = currentRabbit->nextRabbit;
-        free(saveP);
+        saveP = currentRabbit;  // save the adress of the memory to free
+        currentRabbit = currentRabbit->nextRabbit;  // jump to the next one
+        free(saveP);  // free the saved memory adress
     }
 }
 
+/*
+|------------------------------------------------------------------------------|
+|generateAvgLitters                                                            |
+|use : generate the average litters in a year for a female rabbit.             |
+|                                                                              |
+|input : rabbit, the rabbit that needs an average.                             |
+|------------------------------------------------------------------------------|
+*/
 void generateAvgLitters(Srabbit* rabbit) {
     float randNB = genrand_real1();
     if (randNB <= 40) rabbit->nbLittersY = 6;                      //           6:60%              
@@ -51,7 +85,14 @@ void generateAvgLitters(Srabbit* rabbit) {
     else if (randNB <= 100) rabbit->nbLittersY = 8;
 }
 
-//used to update age every time step
+/*
+|------------------------------------------------------------------------------|
+|updateStats                                                                   |
+|use : used to update stats of each rabbit every month.                        |
+|                                                                              |
+|input : rabbit, the memory address of the rabbit.                             |
+|------------------------------------------------------------------------------|
+*/
 void updateStats(Srabbit* rabbit) {
 
     rabbit->age += TIME_STEP;
@@ -59,9 +100,10 @@ void updateStats(Srabbit* rabbit) {
     int prctg = 25;
 
     //update maturaty
-    if (rabbitAge >= 5 && rabbitAge <= 8 && rabbit->mature == 0) {
+    if (rabbitAge >= 5 && rabbitAge <= 8 && rabbit->mature == 0) { // if not mature and have an age between 5 and 8
 
         float randNB = genrand_real1() * 100;
+        // update the mature value of the rabbit with 1x when x is between 5 and 8 and represent the age a rabbit become mature
         while (rabbit->mature == 0) {
             if (randNB <= prctg) {
                 rabbit->mature = 1 + 10 * (rabbitAge - 1 + prctg / 25);
@@ -72,12 +114,12 @@ void updateStats(Srabbit* rabbit) {
             }
         }
     }
-    if (rabbit->sex == 'F' && rabbit->mature > 0 && (rabbit->age % 12 == rabbit->mature / 10)) {
+    if (rabbit->sex == 'F' && rabbit->mature > 0 && (rabbit->age % 12 == rabbit->mature / 10)) { // if a rabbit is a mature female that become recently mature or after X years from being adult
 
-        rabbit->nbLitters = 0;
-        generateAvgLitters(rabbit);
+        rabbit->nbLitters = 0; 
+        generateAvgLitters(rabbit); // will get a new average for the new year
     }
-    if (rabbit->status != 0) { //not dead, probably this line is useless
+    if (rabbit->status != 0) { //not dead
         if ((rabbit->age / 12) >= 11) {  //is 11 years old or more
 
             rabbit->srvRate = (abs(rabbit->srvRate) >= 10) ? (abs(rabbit->srvRate) - 10) : 0;
@@ -85,17 +127,27 @@ void updateStats(Srabbit* rabbit) {
     }
 }
 
+/*
+|------------------------------------------------------------------------------|
+|giveBirth                                                                     |
+|use : give the number of kittens a rabbit must give in a litter.              |
+|                                                                              |
+|input : cRabbit, the rabbit that will produce kittens.                        |
+|                                                                              |
+|output : the number the kittens produced.                                     |
+|------------------------------------------------------------------------------|
+*/
 int giveBirth(Srabbit* cRabbit) {
-    if (cRabbit->sex == 'F' && cRabbit->mature % 10 == 1) { //a mature not dead female rabbit
+    if (cRabbit->sex == 'F' && cRabbit->mature % 10 == 1) { //a mature female rabbit
         int prctg = 25;
 
-        if (cRabbit->nbLitters < cRabbit->nbLittersY) { // did less then her avg and not pregnant
+        if (cRabbit->nbLitters < cRabbit->nbLittersY) { // gived litters less then her avgerage
 
 
             if (cRabbit->pregnant == 1) { // if pregnant
                 float randNB = genrand_real1() * 100;
+                // return nb of kittens [3,6]
                 while (1) {
-                    // return nb of kittens [3,6]
                     if (randNB <= prctg) {
                         cRabbit->pregnant = 0;
                         return 2 + prctg / 25;
@@ -113,11 +165,29 @@ int giveBirth(Srabbit* cRabbit) {
     }
     return 0;
 }
-
+/*
+|------------------------------------------------------------------------------|
+|generate_sex                                                                  |
+|use : Compute the value of PI with the Monte Carlo method.                    |
+|                                                                              |
+|output : a random sex (M for male or F for female).                           |
+|------------------------------------------------------------------------------|
+*/
 char generate_sex() {
     return (genrand_real1() * 100 <= 50) ? 'M' : 'F';
 }
 
+/*
+|------------------------------------------------------------------------------|
+|createRabbitsList                                                             |
+|use : created a linked list of a specific number of rabbits.                  |
+|                                                                              |
+|input : head, the head of the generated list.                                 |
+|        nb,   the number of rabbits to add.                                   |
+|                                                                              |
+|output : the last element of the list created.                                |
+|------------------------------------------------------------------------------|
+*/
 Srabbit* createRabbitsList(int nb, Srabbit** head) {
     if (nb != 0) {
         Srabbit* rabbit = (Srabbit*)malloc(sizeof(Srabbit));
@@ -140,12 +210,21 @@ Srabbit* createRabbitsList(int nb, Srabbit** head) {
     }
     return *head;
 }
-
-int sim(int startNB, int N) {  //number of months
+/*
+|------------------------------------------------------------------------------|
+|sim                                                                           |
+|use : Compute the value of PI with the Monte Carlo method.                    |
+|                                                                              |
+|input : startNB, number of rabbits to start the simulation with.              |
+|        N, number of months                                                   |
+|                                                                              |
+|output : the number of the alive population at the end of the experiment.     |
+|------------------------------------------------------------------------------|
+*/
+int* sim(int startNB, int N) {
     Srabbit* rabbit = (Srabbit*)malloc(sizeof(Srabbit));
     Srabbit* currentRabbit;
     Srabbit* headListRabbit;
-    FILE* fp;
 
     int population = startNB;
     int addedPopulation = 0;
@@ -153,15 +232,7 @@ int sim(int startNB, int N) {  //number of months
     int deadRabbits = 0;
     float progress;
 
-
-    fp = fopen("output.txt", "w");
-    if (fp == NULL) {
-        printf("Failed to open the file `output.txt`\n");
-        return 1;
-    }
-
-
-    //first 2 rubbits
+    //first startNB rubbits
     *rabbit = (Srabbit){ generate_sex(), 1, 0, 0, 0, 0, 0, 35, NULL };
     createRabbitsList(startNB - 1, &rabbit);
 
@@ -179,12 +250,12 @@ int sim(int startNB, int N) {  //number of months
         //run of all the existing rabbits
 
         progress = 0;
-        printf("month %d / %d :\n", i + 1, N);
+        printf("month %d / %d :\n", i + 1, N); // print the current month the loop has arrived
 
 
         for (int j = 0; j < population; j++) {
 
-
+            // to print the progress of the calculations
             if (j % 10000 == 0 && j != 0) {
 
                 // transforme i to a percentage and prints it
@@ -193,23 +264,23 @@ int sim(int startNB, int N) {  //number of months
             }
 
             if (currentRabbit->status != 0) {  // if not already dead
-                updateStats(currentRabbit);
+                updateStats(currentRabbit); //update the rabbit stats
 
                 if (currentRabbit->srvRate >= 0) {
-                    if (genrand_real1() * 100 <= (100 - currentRabbit->srvRate)) {
-                        currentRabbit->status = 0;
+                    if (genrand_real1() * 100 <= (100 - currentRabbit->srvRate)) { // test if the rabbit ill die or no
+                        currentRabbit->status = 0; // if dead
                         deadRabbits++;
                         if (j != (population - 1)) { //to avoid getting last pointer which is equal to NULL
                             currentRabbit = currentRabbit->nextRabbit;
                         }
                         continue;
                     }
-                    currentRabbit->srvRate = currentRabbit->srvRate * -1;
+                    currentRabbit->srvRate = currentRabbit->srvRate * -1; // to avoid testing the chance of surviving with migh lead to the death of all of them 
                 }
-                newKittens = giveBirth(currentRabbit);
-                addedPopulation += newKittens;
+                newKittens = giveBirth(currentRabbit); // how much kittens the current rabbit must give
+                addedPopulation += newKittens;  // add this number to addedPopulation to add it to the population later
 
-                tempRabbit = createRabbitsList(newKittens, &tempRabbit);
+                tempRabbit = createRabbitsList(newKittens, &tempRabbit);  // created a list for the new born rabbits
             }
 
 
@@ -220,7 +291,7 @@ int sim(int startNB, int N) {  //number of months
 
         }
         printf("progress finished  \n");
-        system("cls"); //system("clear");
+        system("cls");  //for windows :system("cls");
 
         if (headListRabbit->nextRabbit != NULL) {
             currentRabbit->nextRabbit = headListRabbit->nextRabbit; // linking the new generation to the old one
@@ -231,26 +302,71 @@ int sim(int startNB, int N) {  //number of months
     }
 
     population -= deadRabbits;
-    printf("\ninput:\n   start number: %d\n   months : %d\nresults:\n   alive population : %d\n"
-        "   dead rabbits : % d\n",
-        startNB, N, population, deadRabbits);
     
-    fprintf(fp, "alive population : %d\n"
-        "dead rabbits : % d\n",
-        population, deadRabbits);
-    
-    fclose(fp);
     freeMem(&rabbit);
-    return population;
+
+    int* tab = malloc(2 * sizeof(int));
+    if (tab == NULL) {
+        printf("error creating tab");
+        return 1;
+    }
+    tab[0] = population;
+    tab[1] = deadRabbits;
+    return tab;
 }
 
+/*
+|------------------------------------------------------------------------------|
+|multiSim                                                                      |
+|use : to simuate sim multiple times.                                          |
+|                                                                              |
+|input : startNB, number of rabbits to start the simulation with.              |
+|        N, number of months.                                                  |
+|        times, number of simulations.                                         |
+|------------------------------------------------------------------------------|
+*/
+void multiSim(int startNB, int N, int times) {
+    FILE* fp;
+    int* tab;
+    int population = 0, deadRabbits = 0;
+
+    fp = fopen("output.txt", "w");
+    if (fp == NULL) {
+        printf("error opening a file");
+        return 1;
+    }
+
+    for (int i = 0; i < times; i++) {
+
+        tab = sim(startNB, N);
+
+        fprintf(fp, "\nsimulation number %d\nresults:\n   alive population : %d\n   dead rabbits : % d\n\n",
+            i+1, tab[0], tab[1]);
+
+        population += tab[0];
+        deadRabbits += tab[1];
+        free(tab);
+    }
+
+    population /= times;
+    deadRabbits /= times;
+    
+    fprintf(fp, "\n>the average<\ninput:\n   start number: %d\n   months : %d\n   number of simulations %d\nresults:\n   alive population : %d\n"
+        "   dead rabbits : % d\n",
+        startNB, N, times, population, deadRabbits);
+
+    printf("\n>the average<\ninput:\n   start number: %d\n   months : %d\n   number of simulations %d\nresults:\n   alive population : %d\n"
+        "   dead rabbits : % d\n",
+        startNB, N, times, population, deadRabbits);
+    fclose(fp);
+}
 
 int main()
 {
     //int gen;
     //printf("Number of generations :");scanf("%d", &gen);
     //printf(fibonacci(gen));
-    sim(100, 100);
-    //fibonnaci(5);
+    //sim(2, 100);
+    multiSim(10, 100, 5);
     return 0;
 }
