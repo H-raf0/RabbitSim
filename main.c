@@ -344,7 +344,7 @@ void multiSim(int startNB, int N, int times) {
     population /= times;
     deadRabbits /= times;
 
-    printf("\n>the average<\ninput:\n   start number: %d\n   months : %d\n   number of simulations %d\nresults:\n   alive population : %d\n"
+    printf("\n>the average<\ninput:\n   start number: %d\n   months : %d\n   number of simulations : %d\nresults:\n   alive population : %d\n"
         "   dead rabbits : % d\n",
         startNB, N, times, population, deadRabbits);
 }
