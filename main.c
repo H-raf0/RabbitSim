@@ -236,6 +236,7 @@ int* sim(int startNB, int N) {
     *rabbit = (Srabbit){ generate_sex(), 1, 0, 0, 0, 0, 0, 35, NULL };
     createRabbitsList(startNB - 1, &rabbit);
 
+
     //life cycle
     for (int i = 0; i < N; i += TIME_STEP) {
 
@@ -250,7 +251,6 @@ int* sim(int startNB, int N) {
         //run of all the existing rabbits
 
         progress = 0;
-        printf("month %d / %d :\n", i + 1, N); // print the current month the loop has arrived
 
 
         for (int j = 0; j < population; j++) {
@@ -260,7 +260,7 @@ int* sim(int startNB, int N) {
 
                 // transforme i to a percentage and prints it
                 progress = j * 100.0 / population;
-                printf("progress : %.2f %%\r", progress);
+                printf("month %d / %d :  progress : %.2f %%\r", i + 1, N, progress);
             }
 
             if (currentRabbit->status != 0) {  // if not already dead
@@ -290,8 +290,7 @@ int* sim(int startNB, int N) {
 
 
         }
-        printf("progress finished  \n");
-        system("cls");  //for windows :system("cls");
+        printf("progress finished                     \r");
 
         if (headListRabbit->nextRabbit != NULL) {
             currentRabbit->nextRabbit = headListRabbit->nextRabbit; // linking the new generation to the old one
@@ -326,22 +325,16 @@ int* sim(int startNB, int N) {
 |------------------------------------------------------------------------------|
 */
 void multiSim(int startNB, int N, int times) {
-    FILE* fp;
     int* tab;
     int population = 0, deadRabbits = 0;
 
-    fp = fopen("output.txt", "w");
-    if (fp == NULL) {
-        printf("error opening a file");
-        return 1;
-    }
-
     for (int i = 0; i < times; i++) {
-
+        printf("->simulation number %d\n", i + 1);
         tab = sim(startNB, N);
 
-        fprintf(fp, "\nsimulation number %d\nresults:\n   alive population : %d\n   dead rabbits : % d\n\n",
-            i+1, tab[0], tab[1]);
+        // print results of each simulation in the output.txt file
+        printf("\nresults:\n   alive population : %d\n   dead rabbits : % d\n\n",
+            tab[0], tab[1]);
 
         population += tab[0];
         deadRabbits += tab[1];
@@ -350,15 +343,10 @@ void multiSim(int startNB, int N, int times) {
 
     population /= times;
     deadRabbits /= times;
-    
-    fprintf(fp, "\n>the average<\ninput:\n   start number: %d\n   months : %d\n   number of simulations %d\nresults:\n   alive population : %d\n"
-        "   dead rabbits : % d\n",
-        startNB, N, times, population, deadRabbits);
 
     printf("\n>the average<\ninput:\n   start number: %d\n   months : %d\n   number of simulations %d\nresults:\n   alive population : %d\n"
         "   dead rabbits : % d\n",
         startNB, N, times, population, deadRabbits);
-    fclose(fp);
 }
 
 int main()
@@ -367,6 +355,6 @@ int main()
     //printf("Number of generations :");scanf("%d", &gen);
     //printf(fibonacci(gen));
     //sim(2, 100);
-    multiSim(10, 100, 5);
+    multiSim(100, 140, 3);
     return 0;
 }
